@@ -57,7 +57,7 @@ static void ReadConfig()
         MailService.MailPassword = Configuration["MailSettings:MailPassword"];
         MailService.MailServer = Configuration["MailSettings:MailServer"];
         MailService.MailPort = int.Parse(Configuration["MailSettings:MailPort"]);
-        //MailService.SetTemplate(Configuration["MailSettings:TemplatePath"]);
+        MailService.SetTemplate(Configuration["MailSettings:TemplatePath"]);
         MailService.SendGridKey = Configuration["MailSettings:SendGridKey"];
         MailService.UseSendGrid = true;
 

@@ -15,4 +15,10 @@
     <ProjectReference Include="..\Gravicode.ExpressionEvaluator\Gravicode.ExpressionEvaluator.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="email.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

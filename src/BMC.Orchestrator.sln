@@ -11,17 +11,19 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gravicode.ExpressionEvaluat
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StreamHub", "StreamHub", "{B06D0F78-41D0-4B98-8B9A-FEDB6A6601B7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BMC.StreamProcessor", "BMC.StreamProcessor\BMC.StreamProcessor.csproj", "{BB149B12-2CBF-42FD-8A8F-5344CB9D46FB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BMC.StreamProcessor", "BMC.StreamProcessor\BMC.StreamProcessor.csproj", "{BB149B12-2CBF-42FD-8A8F-5344CB9D46FB}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{1AF24BE4-34AA-45CF-8596-6D6C01F3DFD1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{82376FE0-7EED-4A23-8E9D-B7C09B08B932}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp", "TestApp\TestApp.csproj", "{82376FE0-7EED-4A23-8E9D-B7C09B08B932}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gravicode.Tools", "Gravicode.Tools\Gravicode.Tools.csproj", "{51573EDB-68BD-45F4-BCAD-5D5D16FFD54A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gravicode.Tools", "Gravicode.Tools\Gravicode.Tools.csproj", "{51573EDB-68BD-45F4-BCAD-5D5D16FFD54A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MqttBroker", "MqttBroker", "{CA314C13-93CD-4E9E-9937-6EFC987ADB3A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GnatMQ.Net", "GnatMQ\GnatMQ.Net.csproj", "{4EBFA6E5-0636-496C-8C46-991B05DF7491}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BMC.CommonActions", "BMC.CommonActions\BMC.CommonActions.csproj", "{593727CB-41AB-424F-A363-2D077D0F2600}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +55,10 @@ Global
 		{4EBFA6E5-0636-496C-8C46-991B05DF7491}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4EBFA6E5-0636-496C-8C46-991B05DF7491}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4EBFA6E5-0636-496C-8C46-991B05DF7491}.Release|Any CPU.Build.0 = Release|Any CPU
+		{593727CB-41AB-424F-A363-2D077D0F2600}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{593727CB-41AB-424F-A363-2D077D0F2600}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{593727CB-41AB-424F-A363-2D077D0F2600}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{593727CB-41AB-424F-A363-2D077D0F2600}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -64,6 +70,7 @@ Global
 		{82376FE0-7EED-4A23-8E9D-B7C09B08B932} = {1AF24BE4-34AA-45CF-8596-6D6C01F3DFD1}
 		{51573EDB-68BD-45F4-BCAD-5D5D16FFD54A} = {97C656C4-B860-4751-AC7A-A6A24AA658F9}
 		{4EBFA6E5-0636-496C-8C46-991B05DF7491} = {CA314C13-93CD-4E9E-9937-6EFC987ADB3A}
+		{593727CB-41AB-424F-A363-2D077D0F2600} = {B06D0F78-41D0-4B98-8B9A-FEDB6A6601B7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {07382384-E7AC-4C57-BC65-5DF0AC1213CC}
