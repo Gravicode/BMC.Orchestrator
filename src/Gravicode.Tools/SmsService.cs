@@ -1,17 +1,10 @@
-﻿using System;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Xml.Serialization;
-using System.Text;
-using System.IO;
-using System.Xml.Linq;
+﻿using Newtonsoft.Json;
 
 namespace Gravicode.Tools
 {
     public class SmsService
     {
-
+        public static string TokenKey { get; set; }
 
         // NOTE: Generated code may require at least .NET Framework 4.5 or .NET Core/Standard 2.0.
         /// <remarks/>
@@ -81,6 +74,57 @@ namespace Gravicode.Tools
 
         public enum SMSStatus { Success = 0, NumberNotValid = 1, UserPassKeyNotValid = 5, ContentRejected = 6, SMSSpams = 89, CreditNotSufficient = 99 };
         static HttpClient client;
+        public static async Task<bool> SendSms(string Message, string PhoneTo, string PhoneFrom = "08174810345")
+        {
+            try
+            {
+                // Find your Account Sid and Token at twilio.com/console
+                // DANGER! This is insecure. See http://twil.io/secure
+                //string UserKey = ConfigurationManager.AppSettings["ZenzivaUserKey"];
+                //string PassKey = ConfigurationManager.AppSettings["ZenzivaPassKey"];
+
+                if (client == null)
+                {
+                    client = new HttpClient();
+                }
+
+                string Url = $"https://websms.co.id/api/smsgateway?token={TokenKey}&to={PhoneTo}&msg={Message}";
+
+                var res = await client.GetAsync(Url);
+                if (res.IsSuccessStatusCode)
+                {
+                    var respStr = await res.Content.ReadAsStringAsync();
+                    var hasil = JsonConvert.DeserializeObject<SmsResult>(respStr);
+
+                    if (hasil.status == "success")
+                    {
+                        Console.WriteLine("sms notification result:" + hasil.message);
+                        //LogHelpers.source = typeof(SmsService).ToString();
+                        //LogHelpers.message = "failed to send sms with the following error:" + resObj.message;
+                        //LogHelpers.user = CommonWeb.GetCurrentUser();
+                        //LogHelpers.WriteLog();
+                        Logs.WriteLog("sms notification result:" + hasil.message);
+                        return true;
+                    }
+                    else
+                        return false;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                //Console.WriteLine("failed to send email with the following error:");
+                //Console.WriteLine(ep.Message);
+                //LogHelpers.source = typeof(SmsService).ToString();
+                //LogHelpers.message = "failed to send sms with the following error:" + ex.Message;
+                //LogHelpers.user = CommonWeb.GetCurrentUser();
+                //LogHelpers.WriteLog();
+                Logs.WriteLog($"failed to send email with the following error:{ex}");
+            }
+            return false;
+
+        }
+        /*
         public static async Task<bool> SendSms(string Message, string PhoneTo, string PhoneFrom = "+628174810345")
         {
             try
@@ -147,7 +191,7 @@ namespace Gravicode.Tools
 
 
         }
-        /*
+        
         public static bool SendSmsWithTwilio(string Message,string PhoneTo, string PhoneFrom= "+17204667090")
         {
             try
@@ -182,4 +226,12 @@ namespace Gravicode.Tools
 
         }*/
     }
+    // Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse);
+    public class SmsResult
+    {
+        public string status { get; set; }
+        public string message { get; set; }
+    }
+
+
 }

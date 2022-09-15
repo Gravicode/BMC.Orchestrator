@@ -1,0 +1,200 @@
+﻿@page "/master/MqttTopic"
+
+@inject IJSRuntime jsRuntime
+@inject NavigationManager NavMgr
+@inject IToastService toastService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IDialogService DialogService
+@using System.IO
+
+<h1>Daftar MqttTopic</h1>
+
+<p>Gunakan halaman ini untuk melihat info MqttTopic.</p>
+
+@if (DataMqttTopic == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <MudTable Context="item" Items="@DataMqttTopic" Dense="@dense" Hover="@hover" Bordered="@bordered" Striped="@striped" Filter="new Func<MqttTopic,bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Data MqttTopic</MudText>
+            <MudSpacer />
+            <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>Topic</MudTh>
+            <MudTh>Project</MudTh>
+            <MudTh>Desc</MudTh>
+            <MudTh>JsonTemplate</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Topic">@item.Topic</MudTd>
+            <MudTd DataLabel="Project">@item.Project?.Name</MudTd>
+            <MudTd DataLabel="Desc">@item.Desc</MudTd>
+            <MudTd DataLabel="JsonTemplate">@item.JsonTemplate</MudTd>
+            <MudTd DataLabel="Actions">
+                @if (HasLogin)
+                {
+                <MudButton ButtonType="ButtonType.Button" @onclick="(() => PrepareForEdit(item))" DisableElevation="true" Variant="Variant.Filled" Color="Color.Primary" Class="mr-2">Ubah</MudButton>
+                <MudButton ButtonType="ButtonType.Button" @onclick="(() => PrepareForDelete(item))" DisableElevation="true" Variant="Variant.Filled" Color="Color.Error" Class="mr-2">Hapus</MudButton>
+                }
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+    <div class="d-flex flex-wrap mt-4">
+        <MudSwitch @bind-Checked="@hover" Color="Color.Primary">Hover</MudSwitch>
+        <MudSwitch @bind-Checked="@dense" Color="Color.Secondary">Dense</MudSwitch>
+        <MudSwitch @bind-Checked="@striped" Color="Color.Tertiary">Striped</MudSwitch>
+        <MudSwitch @bind-Checked="@bordered" Color="Color.Warning">Bordered</MudSwitch>
+    </div>
+
+
+}
+@if (HasLogin)
+{
+     <MudPaper Class="pa-4 mt-4">
+        <MudButton ButtonType="ButtonType.Button" @onclick="(() => InitializeitemObject())" DisableElevation="true" Variant="Variant.Filled" Color="Color.Primary" Class="mr-2">Masukan MqttTopic Baru</MudButton>
+    </MudPaper>
+}
+
+@code {
+    bool HasLogin = false;
+    MqttTopicDetail detail;
+    BMC.CloudIoT.Data.MqttTopicService service;
+    string customHeader = string.Empty;
+    List<MqttTopic> DataMqttTopic;
+    MqttTopic itemObject = new MqttTopic();
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    string UserName;
+
+    private bool dense = false;
+    private bool hover = true;
+    private bool striped = false;
+    private bool bordered = false;
+    private string searchString1 = "";
+    private MqttTopic selectedItem1 = null;
+
+    private HashSet<MqttTopic> selectedItems = new HashSet<MqttTopic>();
+
+    private bool FilterFunc1(MqttTopic element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(MqttTopic element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Topic.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.JsonTemplate.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Desc.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
+
+    async Task DownloadFile(string Url)
+    {
+        if (!string.IsNullOrEmpty(Url))
+        {
+            NavMgr.NavigateTo(Url, true);
+        }
+        else
+        {
+            toastService.ShowError("Url kosong atau tidak valid.");
+        }
+    }
+
+    BMC.CloudIoT.Data.UserProfileService Userservice;
+    protected override async Task OnInitializedAsync()
+    {
+
+        if (Userservice == null) Userservice = new UserProfileService();
+        var user = (await authenticationStateTask).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            UserName = user.Identity.Name;
+            HasLogin = true;// Userservice.GetUserRole(UserName) == Roles.Admin;
+        }
+
+        if (service == null) service = new MqttTopicService();
+
+        DataMqttTopic = service.GetAllData();
+
+
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+        }
+    }
+
+    private async Task InitializeitemObject()
+    {
+
+        itemObject = new MqttTopic();
+
+        customHeader = "Masukan MqttTopic Baru";
+
+        var action = new Action(DataChanged);
+        var parameters = new DialogParameters { ["TaskObject"]=itemObject,["CustomHeader"]=customHeader,["DataChanged"]=action  };
+
+        var dialog = DialogService.Show<MqttTopicDetail>(customHeader, parameters);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            //In a real world scenario we would reload the data from the source here since we "removed" it in the dialog already.
+            long.TryParse(result.Data.ToString(), out var NewId);
+        }
+    }
+    private async void DataChanged()
+    {
+        DataMqttTopic = service.GetAllData();
+        StateHasChanged();
+    }
+    
+    private async Task PrepareForEdit(MqttTopic item)
+    {
+        customHeader = "Ubah Data MqttTopic";
+        itemObject = item;
+        var action = new Action(DataChanged);
+        var parameters = new DialogParameters { ["TaskObject"]=itemObject,["CustomHeader"]=customHeader,["DataChanged"]=action  };
+
+        var dialog = DialogService.Show<MqttTopicDetail>(customHeader, parameters);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            //In a real world scenario we would reload the data from the source here since we "removed" it in the dialog already.
+            long.TryParse(result.Data.ToString(), out var NewId);
+        }
+
+    }
+    private async Task PrepareForDelete(MqttTopic item)
+    {
+        itemObject = item;
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = DialogService.Show<ConfirmDialog>("Konfirmasi", options);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            var task = service.DeleteData(itemObject.Id);
+            //await jsRuntime.InvokeAsync<object>("CloseModal", "confirmDeleteModal");
+            DataMqttTopic = service.GetAllData();
+            itemObject = new MqttTopic() { Id = -1 };
+        }
+    }
+
+
+}

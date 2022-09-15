@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using PostmarkDotNet;
 using System.Net.Mail;
 using System.Net.Mime;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Gravicode.Tools
 {
@@ -56,7 +53,7 @@ namespace Gravicode.Tools
 
             if (content.AttachFileName != null)
             {
-                Attachment data = new Attachment(content.AttachFileName,
+                System.Net.Mail.Attachment data = new System.Net.Mail.Attachment(content.AttachFileName,
                                                  MediaTypeNames.Application.Zip);
                 msg.Attachments.Add(data);
             }
@@ -116,8 +113,39 @@ namespace Gravicode.Tools
     }
     public class MailService
     {
+        public static async Task<bool> PostmarkSendEmail(string subject, string message, string toemail, bool IsHTML = true)
+        {
+            try
+            {
+                var msg = new PostmarkMessage()
+                {
+                    To = toemail,
+                    From = "mail.service@gravicode.com",
+                    TrackOpens = true,
+                    Subject = subject,
+                    TextBody = message,
+                    HtmlBody = FormatWithTemplate(subject, message),
+                    MessageStream = "outbound",
 
-        public static void SetTemplate(string TemplatePath,bool IsLinux =false)
+                };
+
+                var client = new PostmarkClient("3d2b989d-19e4-419b-a817-20578f575947");
+                var sendResult = await client.SendMessageAsync(msg);
+                if (sendResult.Status == PostmarkStatus.Success)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception er)
+            {
+                return false;
+            }
+        }
+        public static void SetTemplate(string TemplatePath, bool IsLinux = false)
         {
             if (!System.IO.File.Exists(TemplatePath)) return;
             var _temp = string.Empty;
@@ -132,7 +160,7 @@ namespace Gravicode.Tools
             TemplateHTML = System.IO.File.ReadAllText(_temp);
         }
 
-        public static string FormatWithTemplate(string subject,string message)
+        public static string FormatWithTemplate(string subject, string message)
         {
             return string.IsNullOrEmpty(TemplateHTML) ? $"{subject} <br/> {message}" : TemplateHTML.Replace("[SUBJECT]", subject).Replace("[MESSAGE]", message);
         }
@@ -149,6 +177,36 @@ namespace Gravicode.Tools
         {
             if (UseSendGrid)
             {
+                //string smtpServer = "smtp-mail.outlook.com";
+
+                var UserMail = MailUser;//"silpo@outlook.co.id";
+                var UserPassword = MailPassword;//"Balittanah123";
+
+                try
+                {
+                    message = FormatWithTemplate(subject, message);
+                    var hasil = await SendGridService.SendEmail(SendGridKey, subject, UserMail, toemail, message);
+
+                    Console.WriteLine("email was sent successfully!");
+                    return hasil;
+                }
+                catch (Exception ex)
+                {
+                    //Console.WriteLine("failed to send email with the following error:");
+                    //Console.WriteLine(ep.Message);
+                    //LogHelpers.source = typeof(EmailService).ToString();
+                    //LogHelpers.message = "failed to send email with the following error:" + ex.Message;
+                    //LogHelpers.user = CommonWeb.GetCurrentUser();
+                    //LogHelpers.WriteLog();
+                    return false;
+                }
+
+
+            }
+            else
+            {
+                var NewTask = new Task<bool>(() =>
+                {
                     //string smtpServer = "smtp-mail.outlook.com";
 
                     var UserMail = MailUser;//"silpo@outlook.co.id";
@@ -156,44 +214,14 @@ namespace Gravicode.Tools
 
                     try
                     {
-                        message = FormatWithTemplate(subject, message);
-                        var hasil = await SendGridService.SendEmail(SendGridKey, subject, UserMail, toemail, message);
-
-                        Console.WriteLine("email was sent successfully!");
-                        return hasil;
-                    }
-                    catch (Exception ex)
-                    {
-                        //Console.WriteLine("failed to send email with the following error:");
-                        //Console.WriteLine(ep.Message);
-                        //LogHelpers.source = typeof(EmailService).ToString();
-                        //LogHelpers.message = "failed to send email with the following error:" + ex.Message;
-                        //LogHelpers.user = CommonWeb.GetCurrentUser();
-                        //LogHelpers.WriteLog();
-                        return false;
-                    }
-               
-               
-            }
-            else
-            {
-                var NewTask = new Task<bool>(() =>
-                {
-                //string smtpServer = "smtp-mail.outlook.com";
-
-                var UserMail = MailUser;//"silpo@outlook.co.id";
-                var UserPassword = MailPassword;//"Balittanah123";
-
-                try
-                    {
-                    //Send teh High priority Email  
-                    EmailManager mailMan = new EmailManager(MailServer, MailPort);
+                        //Send teh High priority Email  
+                        EmailManager mailMan = new EmailManager(MailServer, MailPort);
 
                         EmailSendConfigure myConfig = new EmailSendConfigure();
-                    // replace with your email userName  
-                    myConfig.ClientCredentialUserName = UserMail;
-                    // replace with your email account password
-                    myConfig.ClientCredentialPassword = UserPassword;
+                        // replace with your email userName  
+                        myConfig.ClientCredentialUserName = UserMail;
+                        // replace with your email account password
+                        myConfig.ClientCredentialPassword = UserPassword;
                         myConfig.TOs = new string[] { toemail };
                         myConfig.CCs = new string[] { };
                         myConfig.From = UserMail;
@@ -210,19 +238,19 @@ namespace Gravicode.Tools
                     }
                     catch (Exception ex)
                     {
-                    //Console.WriteLine("failed to send email with the following error:");
-                    //Console.WriteLine(ep.Message);
-                    //LogHelpers.source = typeof(EmailService).ToString();
-                    //LogHelpers.message = "failed to send email with the following error:" + ex.Message;
-                    //LogHelpers.user = CommonWeb.GetCurrentUser();
-                    //LogHelpers.WriteLog();
-                    return false;
+                        //Console.WriteLine("failed to send email with the following error:");
+                        //Console.WriteLine(ep.Message);
+                        //LogHelpers.source = typeof(EmailService).ToString();
+                        //LogHelpers.message = "failed to send email with the following error:" + ex.Message;
+                        //LogHelpers.user = CommonWeb.GetCurrentUser();
+                        //LogHelpers.WriteLog();
+                        return false;
                     }
                 });
                 NewTask.Start();
                 return await NewTask;
             }
-            
+
         }
     }
 }

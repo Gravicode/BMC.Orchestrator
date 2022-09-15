@@ -1,0 +1,203 @@
+﻿@page "/master/Project"
+
+@inject IJSRuntime jsRuntime
+@inject NavigationManager NavMgr
+@inject IToastService toastService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IDialogService DialogService
+@using System.IO
+
+<h1>Daftar Project</h1>
+
+<p>Gunakan halaman ini untuk melihat info Project.</p>
+
+@if (DataProject == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <MudTable Context="item" Items="@DataProject" Dense="@dense" Hover="@hover" Bordered="@bordered" Striped="@striped" Filter="new Func<Project,bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Data Project</MudText>
+            <MudSpacer />
+            <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Pic</MudTh>
+            <MudTh>Desc</MudTh>
+            <MudTh>Email</MudTh>
+            <MudTh>StartDate</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Nama">@item.Name</MudTd>
+            <MudTd DataLabel="Pic">@item.Pic</MudTd>
+            <MudTd DataLabel="Desc">@item.Desc</MudTd>
+            <MudTd DataLabel="Email">@item.Email</MudTd>
+            <MudTd DataLabel="StartDate">@item.StartDate?.ToString("dd/MMM/yyyy HH:mm")</MudTd>
+            <MudTd DataLabel="Actions">
+                @if (HasLogin)
+                {
+                <MudButton ButtonType="ButtonType.Button" @onclick="(() => PrepareForEdit(item))" DisableElevation="true" Variant="Variant.Filled" Color="Color.Primary" Class="mr-2">Ubah</MudButton>
+                <MudButton ButtonType="ButtonType.Button" @onclick="(() => PrepareForDelete(item))" DisableElevation="true" Variant="Variant.Filled" Color="Color.Error" Class="mr-2">Hapus</MudButton>
+                }
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+    <div class="d-flex flex-wrap mt-4">
+        <MudSwitch @bind-Checked="@hover" Color="Color.Primary">Hover</MudSwitch>
+        <MudSwitch @bind-Checked="@dense" Color="Color.Secondary">Dense</MudSwitch>
+        <MudSwitch @bind-Checked="@striped" Color="Color.Tertiary">Striped</MudSwitch>
+        <MudSwitch @bind-Checked="@bordered" Color="Color.Warning">Bordered</MudSwitch>
+    </div>
+
+
+}
+@if (HasLogin)
+{
+    <MudPaper Class="pa-4 mt-4">
+        <MudButton ButtonType="ButtonType.Button" @onclick="(() => InitializeitemObject())" DisableElevation="true" Variant="Variant.Filled" Color="Color.Primary" Class="mr-2">Masukan Project Baru</MudButton>
+    </MudPaper>
+}
+
+@code {
+    bool HasLogin = false;
+    ProjectDetail detail;
+    BMC.CloudIoT.Data.ProjectService service;
+    string customHeader = string.Empty;
+    List<Project> DataProject;
+    Project itemObject = new Project();
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    string UserName;
+
+    private bool dense = false;
+    private bool hover = true;
+    private bool striped = false;
+    private bool bordered = false;
+    private string searchString1 = "";
+    private Project selectedItem1 = null;
+
+    private HashSet<Project> selectedItems = new HashSet<Project>();
+
+    private bool FilterFunc1(Project element) => FilterFunc(element, searchString1);
+
+    private bool FilterFunc(Project element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+            return true;
+        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Desc.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Email.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        return false;
+    }
+
+    async Task DownloadFile(string Url)
+    {
+        if (!string.IsNullOrEmpty(Url))
+        {
+            NavMgr.NavigateTo(Url, true);
+        }
+        else
+        {
+            toastService.ShowError("Url kosong atau tidak valid.");
+        }
+    }
+
+    BMC.CloudIoT.Data.UserProfileService Userservice;
+    protected override async Task OnInitializedAsync()
+    {
+
+        if (Userservice == null) Userservice = new UserProfileService();
+        var user = (await authenticationStateTask).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            UserName = user.Identity.Name;
+            HasLogin = true;// Userservice.GetUserRole(UserName) == Roles.Admin;
+        }
+
+        if (service == null) service = new ProjectService();
+
+        DataProject = service.GetAllData();
+
+
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+        }
+    }
+
+    private async Task InitializeitemObject()
+    {
+
+        itemObject = new Project();
+
+        customHeader = "Masukan Project Baru";
+
+        var action = new Action(DataChanged);
+        var parameters = new DialogParameters { ["TaskObject"] = itemObject, ["CustomHeader"] = customHeader, ["DataChanged"] = action };
+
+        var dialog = DialogService.Show<ProjectDetail>(customHeader, parameters);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            //In a real world scenario we would reload the data from the source here since we "removed" it in the dialog already.
+            long.TryParse(result.Data.ToString(), out var NewId);
+        }
+    }
+    private async void DataChanged()
+    {
+        DataProject = service.GetAllData();
+        StateHasChanged();
+    }
+
+    private async Task PrepareForEdit(Project item)
+    {
+        customHeader = "Ubah Data Project";
+        itemObject = item;
+        var action = new Action(DataChanged);
+        var parameters = new DialogParameters { ["TaskObject"] = itemObject, ["CustomHeader"] = customHeader, ["DataChanged"] = action };
+
+        var dialog = DialogService.Show<ProjectDetail>(customHeader, parameters);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            //In a real world scenario we would reload the data from the source here since we "removed" it in the dialog already.
+            long.TryParse(result.Data.ToString(), out var NewId);
+        }
+
+    }
+    private async Task PrepareForDelete(Project item)
+    {
+        itemObject = item;
+        var options = new DialogOptions { CloseOnEscapeKey = true };
+        var dialog = DialogService.Show<ConfirmDialog>("Konfirmasi", options);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            var task = service.DeleteData(itemObject.Id);
+            //await jsRuntime.InvokeAsync<object>("CloseModal", "confirmDeleteModal");
+            DataProject = service.GetAllData();
+            itemObject = new Project() { Id = -1 };
+        }
+    }
+
+
+}
+
