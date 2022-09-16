@@ -138,7 +138,7 @@ else
 
         if (service == null) service = new AlertService();
 
-        DataAlert = service.GetAllData();
+        DataAlert = service.GetAllData(UserName);
 
 
     }
@@ -155,7 +155,7 @@ else
         itemObject = new Alert();
 
         customHeader = "Masukan Alert Baru";
-
+        itemObject.Username = UserName;
         var action = new Action(DataChanged);
         var parameters = new DialogParameters { ["TaskObject"] = itemObject, ["CustomHeader"] = customHeader, ["DataChanged"] = action };
 
@@ -170,7 +170,7 @@ else
     }
     private async void DataChanged()
     {
-        DataAlert = service.GetAllData();
+        DataAlert = service.GetAllData(UserName);
         StateHasChanged();
     }
 
@@ -202,7 +202,7 @@ else
         {
             var task = service.DeleteData(itemObject.Id);
             //await jsRuntime.InvokeAsync<object>("CloseModal", "confirmDeleteModal");
-            DataAlert = service.GetAllData();
+            DataAlert = service.GetAllData(UserName);
             itemObject = new Alert() { Id = -1 };
         }
     }

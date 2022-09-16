@@ -1,15 +1,21 @@
 using MQTTnet.Server;
 using MQTTnet;
 using MQTTnet.Protocol;
+using BMC.MessageBroker.Data;
+using Gravicode.Tools;
 
 namespace BMC.MessageBroker
 {
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
+        UserProfileService UserSvc;
+        DeviceService DeviceSvc;
 
-        public Worker(ILogger<Worker> logger)
+        public Worker(ILogger<Worker> logger, UserProfileService UserProfileService, DeviceService DeviceService)
         {
+            this.UserSvc = UserProfileService;
+            this.DeviceSvc = DeviceService;
             _logger = logger;
         }
 
@@ -41,20 +47,31 @@ namespace BMC.MessageBroker
                 // no change to connect without valid credentials.
                 mqttServer.ValidatingConnectionAsync += e =>
                 {
-                    if (e.ClientId != "ValidClientId")
+                    var valid = DeviceSvc.IsMqttClientIdExist(e.ClientId, e.UserName);
+                    if (!valid.Result)
                     {
                         e.ReasonCode = MqttConnectReasonCode.ClientIdentifierNotValid;
                     }
 
-                    if (e.UserName != "ValidUser")
+
+                    var item = UserSvc.GetItemByEmail(e.UserName);
+                    if (item == null)
                     {
                         e.ReasonCode = MqttConnectReasonCode.BadUserNameOrPassword;
+                    }
+                    else
+                    {
+                        var enc = new Encryption();
+                        var pass = enc.Decrypt(item.Password);
+                        bool isAuthenticate = pass == e.Password;
+                        if (!isAuthenticate)
+                        {
+                            e.ReasonCode = MqttConnectReasonCode.BadUserNameOrPassword;
+                        }
                     }
 
-                    if (e.Password != "SecretPassword")
-                    {
-                        e.ReasonCode = MqttConnectReasonCode.BadUserNameOrPassword;
-                    }
+                    _logger.LogInformation("MQTT Server is Ready: {time}", DateTimeOffset.Now);
+
 
                     return Task.CompletedTask;
                 };

@@ -1,12 +1,12 @@
 ﻿using BMC.Models;
 using Microsoft.EntityFrameworkCore;
-using BMC.CloudIoT.Data;
+using BMC.MessageBroker.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BMC.CloudIoT.Data
+namespace BMC.MessageBroker.Data
 {
     public class ProjectService : ICrud<Project>
     {
@@ -62,7 +62,9 @@ namespace BMC.CloudIoT.Data
             return false;
 
         }
-        
+
+
+
         public bool UpdateData(Project data)
         {
             try

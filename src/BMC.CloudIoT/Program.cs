@@ -48,13 +48,10 @@ builder.Services.AddTransient<MqttTopicService>();
 builder.Services.AddTransient<ProjectService>();
 builder.Services.AddTransient<AlertService>();
 builder.Services.AddTransient<UserProfileService>();
-/*
-builder.Services.AddTransient<UserProfileService>();
-builder.Services.AddTransient<UserProfileService>();
-builder.Services.AddTransient<UserProfileService>();
-builder.Services.AddTransient<UserProfileService>();
-builder.Services.AddTransient<UserProfileService>();
-*/
+builder.Services.AddTransient<MessageStreamService>();
+builder.Services.AddTransient<DeviceService>();
+builder.Services.AddTransient<DashboardService>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAllOrigins",
@@ -87,6 +84,9 @@ MailService.UseSendGrid = true;
 SmsService.UserKey = Configuration["SmsSettings:ZenzivaUserKey"];
 SmsService.PassKey = Configuration["SmsSettings:ZenzivaPassKey"];
 SmsService.TokenKey = Configuration["SmsSettings:TokenKey"];
+
+AppConstants.MqttPort = Configuration["App:MqttPort"];
+AppConstants.MqttHost = Configuration["App:MqttHost"];
 
 
 builder.Services.Configure<ForwardedHeadersOptions>(options =>

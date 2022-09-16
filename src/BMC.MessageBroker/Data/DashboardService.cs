@@ -1,57 +1,58 @@
 ﻿using BMC.Models;
 using Microsoft.EntityFrameworkCore;
-using BMC.CloudIoT.Data;
+using BMC.MessageBroker.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BMC.CloudIoT.Data
+namespace BMC.MessageBroker.Data
 {
-    public class ProjectService : ICrud<Project>
+    public class DashboardService : ICrud<Dashboard>
     {
         CloudIoTDB db;
 
-        public ProjectService()
+        public DashboardService()
         {
             if (db == null) db = new CloudIoTDB();
 
         }
         public bool DeleteData(object Id)
         {
-            var selData = (db.Projects.Where(x => x.Id == (long)Id).FirstOrDefault());
-            db.Projects.Remove(selData);
+            var selData = (db.Dashboards.Where(x => x.Id == (long)Id).FirstOrDefault());
+            db.Dashboards.Remove(selData);
             db.SaveChanges();
             return true;
         }
-        
-        public List<Project> FindByKeyword(string Keyword)
+
+        public List<Dashboard> FindByKeyword(string Keyword)
         {
-            var data = from x in db.Projects
-                       where x.Name.Contains(Keyword)
+            var data = from x in db.Dashboards
+                       where x.Name.Contains(Keyword) || x.Desc.Contains(Keyword)
                        select x;
             return data.ToList();
         }
 
-        public List<Project> GetAllData()
+        public List<Dashboard> GetAllData()
         {
-            return db.Projects.ToList();
+            return db.Dashboards.ToList();
         }
-        public List<Project> GetAllData(string username)
+        public List<Dashboard> GetAllData(string username)
         {
-            return db.Projects.Where(x => x.Username == username).ToList();
+            return db.Dashboards.Where(x => x.Username == username).ToList();
         }
-        public Project GetDataById(object Id)
+
+        public Dashboard GetDataById(object Id)
         {
-            return db.Projects.Where(x => x.Id == (long)Id).FirstOrDefault();
+            return db.Dashboards.Where(x => x.Id == (long)Id).FirstOrDefault();
         }
 
 
-        public bool InsertData(Project data)
+        public bool InsertData(Dashboard data)
         {
             try
             {
-                db.Projects.Add(data);
+                db.Dashboards.Add(data);
                 db.SaveChanges();
                 return true;
             }
@@ -62,8 +63,10 @@ namespace BMC.CloudIoT.Data
             return false;
 
         }
-        
-        public bool UpdateData(Project data)
+
+
+
+        public bool UpdateData(Dashboard data)
         {
             try
             {
@@ -92,7 +95,7 @@ namespace BMC.CloudIoT.Data
 
         public long GetLastId()
         {
-            return db.Projects.Max(x => x.Id);
+            return db.Dashboards.Max(x => x.Id);
         }
     }
 

@@ -1,4 +1,4 @@
-﻿@page "/master/Project"
+﻿@page "/master/MessageStream"
 
 @inject IJSRuntime jsRuntime
 @inject NavigationManager NavMgr
@@ -7,48 +7,48 @@
 @inject IDialogService DialogService
 @using System.IO
 
-<h1>Daftar Project</h1>
+<h1>Daftar MessageStream</h1>
 
-<p>Gunakan halaman ini untuk melihat info Project.</p>
+<p>Gunakan halaman ini untuk melihat info MessageStream.</p>
 
-@if (DataProject == null)
+@if (DataMessageStream == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <MudTable Context="item" Items="@DataProject" Dense="@dense" Hover="@hover" Bordered="@bordered" Striped="@striped" Filter="new Func<Project,bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
+    <MudTable Context="item" Items="@DataMessageStream" Dense="@dense" Hover="@hover" Bordered="@bordered" Striped="@striped" Filter="new Func<MessageStream,bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1">
         <ToolBarContent>
-            <MudText Typo="Typo.h6">Data Project</MudText>
+            <MudText Typo="Typo.h6">Data MessageStream</MudText>
             <MudSpacer />
             <MudTextField @bind-Value="searchString1" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
         </ToolBarContent>
         <HeaderContent>
-            <MudTh>Name</MudTh>
-            <MudTh>Pic</MudTh>
-            <MudTh>Desc</MudTh>
-            <MudTh>Email</MudTh>
-            <MudTh>StartDate</MudTh>
+            <MudTh>CreatedDate</MudTh>
+            <MudTh>Content</MudTh>
+            <MudTh>MqttClientId</MudTh>
+            <MudTh>MqttTopic</MudTh>
+         
             <MudTh>Actions</MudTh>
+
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="Nama">@item.Name</MudTd>
-            <MudTd DataLabel="Pic">@item.Pic</MudTd>
-            <MudTd DataLabel="Desc">@item.Desc</MudTd>
-            <MudTd DataLabel="Email">@item.Email</MudTd>
-            <MudTd DataLabel="StartDate">@item.StartDate?.ToString("dd/MMM/yyyy HH:mm")</MudTd>
+            <MudTd DataLabel="CreatedDate">@item.CreatedDate.ToString()</MudTd>
+            <MudTd DataLabel="Content">@item.Content</MudTd>
+            <MudTd DataLabel="MqttClientId">@item.MqttClientId</MudTd>
+            <MudTd DataLabel="MqttTopic">@item.MqttTopic</MudTd>
             <MudTd DataLabel="Actions">
                 @if (HasLogin)
                 {
-                <MudButton ButtonType="ButtonType.Button" @onclick="(() => PrepareForEdit(item))" DisableElevation="true" Variant="Variant.Filled" Color="Color.Primary" Class="mr-2">Ubah</MudButton>
-                <MudButton ButtonType="ButtonType.Button" @onclick="(() => PrepareForDelete(item))" DisableElevation="true" Variant="Variant.Filled" Color="Color.Error" Class="mr-2">Hapus</MudButton>
+                    <MudButton ButtonType="ButtonType.Button" @onclick="(() => PrepareForEdit(item))" DisableElevation="true" Variant="Variant.Filled" Color="Color.Primary" Class="mr-2">Ubah</MudButton>
+                    <MudButton ButtonType="ButtonType.Button" @onclick="(() => PrepareForDelete(item))" DisableElevation="true" Variant="Variant.Filled" Color="Color.Error" Class="mr-2">Hapus</MudButton>
                 }
-        </MudTd>
-    </RowTemplate>
-    <PagerContent>
-        <MudTablePager />
-    </PagerContent>
-</MudTable>
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
 
     <div class="d-flex flex-wrap mt-4">
         <MudSwitch @bind-Checked="@hover" Color="Color.Primary">Hover</MudSwitch>
@@ -62,17 +62,17 @@ else
 @if (HasLogin)
 {
     <MudPaper Class="pa-4 mt-4">
-        <MudButton ButtonType="ButtonType.Button" @onclick="(() => InitializeitemObject())" DisableElevation="true" Variant="Variant.Filled" Color="Color.Primary" Class="mr-2">Masukan Project Baru</MudButton>
+        <MudButton ButtonType="ButtonType.Button" @onclick="(() => InitializeitemObject())" DisableElevation="true" Variant="Variant.Filled" Color="Color.Primary" Class="mr-2">Masukan MessageStream Baru</MudButton>
     </MudPaper>
 }
 
 @code {
     bool HasLogin = false;
-    ProjectDetail detail;
-    BMC.CloudIoT.Data.ProjectService service;
+    MessageStreamDetail detail;
+    BMC.CloudIoT.Data.MessageStreamService service;
     string customHeader = string.Empty;
-    List<Project> DataProject;
-    Project itemObject = new Project();
+    List<MessageStream> DataMessageStream;
+    MessageStream itemObject = new MessageStream();
     [CascadingParameter]
     private Task<AuthenticationState> authenticationStateTask { get; set; }
     string UserName;
@@ -82,21 +82,19 @@ else
     private bool striped = false;
     private bool bordered = false;
     private string searchString1 = "";
-    private Project selectedItem1 = null;
+    private MessageStream selectedItem1 = null;
 
-    private HashSet<Project> selectedItems = new HashSet<Project>();
+    private HashSet<MessageStream> selectedItems = new HashSet<MessageStream>();
 
-    private bool FilterFunc1(Project element) => FilterFunc(element, searchString1);
+    private bool FilterFunc1(MessageStream element) => FilterFunc(element, searchString1);
 
-    private bool FilterFunc(Project element, string searchString)
+    private bool FilterFunc(MessageStream element, string searchString)
     {
         if (string.IsNullOrWhiteSpace(searchString))
             return true;
-        if (element.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (element.Content.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-        if (element.Desc.Contains(searchString, StringComparison.OrdinalIgnoreCase))
-            return true;
-        if (element.Email.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (element.MqttTopic.Contains(searchString, StringComparison.OrdinalIgnoreCase))
             return true;
 
         return false;
@@ -127,9 +125,9 @@ else
             HasLogin = true;// Userservice.GetUserRole(UserName) == Roles.Admin;
         }
 
-        if (service == null) service = new ProjectService();
+        if (service == null) service = new MessageStreamService();
 
-        DataProject = service.GetAllData(UserName);
+        DataMessageStream = service.GetAllData(UserName);
 
 
     }
@@ -143,14 +141,14 @@ else
     private async Task InitializeitemObject()
     {
 
-        itemObject = new Project();
+        itemObject = new MessageStream();
         itemObject.Username = UserName;
-        customHeader = "Masukan Project Baru";
+        customHeader = "Masukan MessageStream Baru";
 
         var action = new Action(DataChanged);
         var parameters = new DialogParameters { ["TaskObject"] = itemObject, ["CustomHeader"] = customHeader, ["DataChanged"] = action };
 
-        var dialog = DialogService.Show<ProjectDetail>(customHeader, parameters);
+        var dialog = DialogService.Show<MessageStreamDetail>(customHeader, parameters);
         var result = await dialog.Result;
 
         if (!result.Cancelled)
@@ -161,18 +159,18 @@ else
     }
     private async void DataChanged()
     {
-        DataProject = service.GetAllData(UserName);
+        DataMessageStream = service.GetAllData(UserName);
         StateHasChanged();
     }
 
-    private async Task PrepareForEdit(Project item)
+    private async Task PrepareForEdit(MessageStream item)
     {
-        customHeader = "Ubah Data Project";
+        customHeader = "Ubah Data MessageStream";
         itemObject = item;
         var action = new Action(DataChanged);
         var parameters = new DialogParameters { ["TaskObject"] = itemObject, ["CustomHeader"] = customHeader, ["DataChanged"] = action };
 
-        var dialog = DialogService.Show<ProjectDetail>(customHeader, parameters);
+        var dialog = DialogService.Show<MessageStreamDetail>(customHeader, parameters);
         var result = await dialog.Result;
 
         if (!result.Cancelled)
@@ -182,7 +180,7 @@ else
         }
 
     }
-    private async Task PrepareForDelete(Project item)
+    private async Task PrepareForDelete(MessageStream item)
     {
         itemObject = item;
         var options = new DialogOptions { CloseOnEscapeKey = true };
@@ -193,11 +191,10 @@ else
         {
             var task = service.DeleteData(itemObject.Id);
             //await jsRuntime.InvokeAsync<object>("CloseModal", "confirmDeleteModal");
-            DataProject = service.GetAllData(UserName);
-            itemObject = new Project() { Id = -1 };
+            DataMessageStream = service.GetAllData(UserName);
+            itemObject = new MessageStream() { Id = -1 };
         }
     }
 
 
 }
-

@@ -35,6 +35,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BMC.CloudIoT", "BMC.CloudIo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BMC.MessageBroker", "BMC.MessageBroker\BMC.MessageBroker.csproj", "{31A6DE86-46BF-4075-8511-EBA1FB32209A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestMqtt", "TestMqtt\TestMqtt.csproj", "{67E0A051-E52D-4E78-8444-24CF27520DEC}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +83,10 @@ Global
 		{31A6DE86-46BF-4075-8511-EBA1FB32209A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{31A6DE86-46BF-4075-8511-EBA1FB32209A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{31A6DE86-46BF-4075-8511-EBA1FB32209A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67E0A051-E52D-4E78-8444-24CF27520DEC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67E0A051-E52D-4E78-8444-24CF27520DEC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67E0A051-E52D-4E78-8444-24CF27520DEC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67E0A051-E52D-4E78-8444-24CF27520DEC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -96,6 +102,7 @@ Global
 		{C3C47378-15DC-47DB-BBDA-51F4DFABA1FD} = {4D2F7114-AE1E-423E-9F48-4129B8F47A17}
 		{CCD9599A-76A3-4B1F-BC0D-64C17628B04E} = {CFD52CC7-4028-4B90-9F04-F87B629D91B1}
 		{31A6DE86-46BF-4075-8511-EBA1FB32209A} = {CA314C13-93CD-4E9E-9937-6EFC987ADB3A}
+		{67E0A051-E52D-4E78-8444-24CF27520DEC} = {1AF24BE4-34AA-45CF-8596-6D6C01F3DFD1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {07382384-E7AC-4C57-BC65-5DF0AC1213CC}

@@ -215,7 +215,7 @@ namespace BMC.Models
         [DataMember(Order = 4)]
         public string? Desc { set; get; }
         [DataMember(Order = 5)]
-        public ChartTypes? ChartType { set; get; }
+        public ChartTypes ChartType { set; get; }
         [DataMember(Order = 6)]
         public string? XAxisMember { set; get; }
         [DataMember(Order = 7)]
@@ -226,7 +226,10 @@ namespace BMC.Models
         public string? YAxisType { set; get; }
         [DataMember(Order = 10)]
         [Required]
-        public string Username { set; get; }
+        public string Username { set; get; } 
+        
+        [DataMember(Order = 11)]
+        public string? DashboardUrl { set; get; }
 
         public Project Project { set; get; }
     }
@@ -274,7 +277,7 @@ namespace BMC.Models
         [DataMember(Order = 4)]
         public string? Desc { set; get; }
         [DataMember(Order = 5)]
-        public DeviceTypes? DeviceType { set; get; }
+        public DeviceTypes DeviceType { set; get; }
      
         [DataMember(Order = 6)]
         [Required]
@@ -290,13 +293,16 @@ namespace BMC.Models
         public long Id { get; set; }
         [DataMember(Order = 2)]
        
-        public DateTime CreatedDate { set; get; }
+        public DateTime? CreatedDate { set; get; }
         [DataMember(Order = 3)]
         public string? Content { set; get; }
         [DataMember(Order = 4)]
         public string? MqttClientId { set; get; }
         [DataMember(Order = 5)]
         public string? MqttTopic { set; get; }     
+        
+        [DataMember(Order = 6)]
+        public string? Username { set; get; }     
      
     }
 

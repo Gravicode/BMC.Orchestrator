@@ -1,0 +1,128 @@
+﻿@inject IJSRuntime jsRuntime
+@using System.IO
+@inject IToastService toastService
+@inject DashboardService service
+@inject ProjectService ProjectSvc
+@inject AzureBlobHelper blob;
+
+@inject ISnackbar Snackbar
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.Info" Class="mr-3 mb-n1" />
+            @CustomHeader
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <EditForm Model="@TaskObject" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator />
+            <MudGrid>
+                <MudItem xs="12" sm="12">
+                    <MudCard>
+                        <MudCardContent>
+                            <input type="hidden" @bind="@TaskObject.Id" />
+                            <MudTextField Label="Name" HelperText="Name"
+                                          @bind-Value="TaskObject.Name" For="@(() => TaskObject.Name)" />
+
+                            <MudSelect T="BMC.Models.ChartTypes" Label="Chart Type" @bind-Value="@TaskObject.ChartType" AnchorOrigin="Origin.BottomCenter">
+                                @foreach (BMC.Models.ChartTypes item in Enum.GetValues(typeof(BMC.Models.ChartTypes)))
+                                {
+                                    <MudSelectItem Value="@(item)">@item.ToString()</MudSelectItem>
+                                   }  
+                              
+                            </MudSelect>
+                             <MudSelect T="long" Label="Project" @bind-Value="@TaskObject.ProjectId" AnchorOrigin="Origin.BottomCenter">
+                                @if (ListProject != null)
+                                    @foreach (var item in ListProject)
+                                    {
+                                        <MudSelectItem Value="@(item.Id)">@item.Name</MudSelectItem>
+                                    }
+                            </MudSelect>
+
+                            <MudTextField Label="XAxisMember" HelperText="XAxisMember"
+                                          @bind-Value="TaskObject.XAxisMember" For="@(() => TaskObject.XAxisMember)" />
+                             <MudSelect T="string" Label="XAxisType" @bind-Value="@TaskObject.XAxisType" AnchorOrigin="Origin.BottomCenter">
+                              
+                                    @foreach (var item in AppConstants.AxisTypes)
+                                    {
+                                        <MudSelectItem Value="@(item)">@item</MudSelectItem>
+                                    }
+                            </MudSelect>
+                            <MudTextField Label="YAxisMember" HelperText="YAxisMember"
+                                          @bind-Value="TaskObject.YAxisMember" For="@(() => TaskObject.YAxisMember)" />
+                            <MudSelect T="string" Label="YAxisType" @bind-Value="@TaskObject.YAxisType" AnchorOrigin="Origin.BottomCenter">
+
+                                @foreach (var item in AppConstants.AxisTypes)
+                                {
+                                    <MudSelectItem Value="@(item)">@item</MudSelectItem>
+                                }
+                            </MudSelect>
+
+                            <MudTextField Label="Desc" Class="mt-3"
+                                          @bind-Value="TaskObject.Desc" For="@(() => TaskObject.Desc)" InputType="InputType.Text" />
+
+                            <MudTextField Label="Dashboard Url" Class="mt-3"
+                                          @bind-Value="TaskObject.DashboardUrl" For="@(() => TaskObject.DashboardUrl)" InputType="InputType.Text" />
+
+
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="mr-2">Simpan</MudButton>
+                            <MudButton ButtonType="ButtonType.Button" OnClick="Cancel" Variant="Variant.Filled" Color="Color.Secondary">Cancel</MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+
+            </MudGrid>
+        </EditForm>
+    </DialogContent>
+    <DialogActions>
+
+    </DialogActions>
+</MudDialog>
+
+
+@code {
+    List<Project> ListProject = new();
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    [Parameter]
+    public string CustomHeader { get; set; }
+    [Parameter]
+    public Dashboard TaskObject { get; set; }
+    [Parameter]
+    public Action DataChanged { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        ListProject = ProjectSvc.GetAllData();
+    }
+    private void OnValidSubmit(EditContext context)
+    {
+        if (TaskObject.Id == 0)
+        {
+
+            var hasil = service.InsertData(TaskObject);
+            if (!hasil)
+            {
+                Snackbar.Add("Gagal menyimpan data. Isi data dengan lengkap.", Severity.Error);
+                //toastService.ShowError("Gagal menyimpan data. Isi data dengan lengkap.", "Perhatian");
+            }
+        }
+        else
+        {
+            service.UpdateData(TaskObject);
+        }
+
+        //In a real world scenario this bool would probably be a service to delete the item from api/database
+        Snackbar.Add("Data Saved", Severity.Success);
+        MudDialog.Close(DialogResult.Ok(TaskObject.Id));
+        DataChanged?.Invoke();
+    }
+
+}

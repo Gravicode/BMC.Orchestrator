@@ -37,10 +37,13 @@ namespace BMC.CloudIoT.Data
         {
             return db.MqttTopics.ToList();
         }
-
+        public List<MqttTopic> GetAllData(string username)
+        {
+            return db.MqttTopics.Include(c=>c.Project).Where(x => x.Username == username).ToList();
+        }
         public MqttTopic GetDataById(object Id)
         {
-            return db.MqttTopics.Where(x => x.Id == (long)Id).FirstOrDefault();
+            return db.MqttTopics.Include(c => c.Project).Where(x => x.Id == (long)Id).FirstOrDefault();
         }
 
 

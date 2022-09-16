@@ -1,9 +1,8 @@
 ﻿@inject IJSRuntime jsRuntime
 @using System.IO
 @inject IToastService toastService
-@inject ProjectService service
+@inject DeviceService service
 @inject MqttTopicService MqttTopicSvc
-@inject DeviceService DeviceSvc
 @inject AzureBlobHelper blob;
 
 @inject ISnackbar Snackbar
@@ -23,20 +22,22 @@
                     <MudCard>
                         <MudCardContent>
                             <input type="hidden" @bind="@TaskObject.Id" />
-                            <MudTextField Label="Nama" HelperText="Project Name"
+                            <MudTextField Label="Name" HelperText="Name"
                                           @bind-Value="TaskObject.Name" For="@(() => TaskObject.Name)" />
+                                          
+                            <MudTextField Label="MqttClientId" HelperText="MqttClientId"
+                                          @bind-Value="TaskObject.MqttClientId" For="@(() => TaskObject.MqttClientId)" />
 
-                            
-                            <MudDatePicker Label="Start Date" @bind-Date="TaskObject.StartDate" />
+                            <MudSelect T="BMC.Models.DeviceTypes" Label="Device Type" @bind-Value="@TaskObject.DeviceType" AnchorOrigin="Origin.BottomCenter">
+                                @foreach (DeviceTypes item in Enum.GetValues(typeof(DeviceTypes)))
+                                {
+                                    <MudSelectItem Value="@(item)">@item.ToString()</MudSelectItem>
+                                }
 
+                            </MudSelect>
                             <MudTextField Label="Desc" Class="mt-3"
                                           @bind-Value="TaskObject.Desc" For="@(() => TaskObject.Desc)" InputType="InputType.Text" />
 
-                            <MudTextField Label="Pic" Class="mt-3"
-                                          @bind-Value="TaskObject.Pic" For="@(() => TaskObject.Pic)" InputType="InputType.Text" />
-
-                            <MudTextField Label="Email" Class="mt-3"
-                                          @bind-Value="TaskObject.Email" For="@(() => TaskObject.Email)" InputType="InputType.Email" />
 
                         </MudCardContent>
                         <MudCardActions>
@@ -58,7 +59,7 @@
 @code {
 
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
-
+    List<MqttTopic> ListTopic = new();
     private void Cancel()
     {
         MudDialog.Cancel();
@@ -67,12 +68,13 @@
     [Parameter]
     public string CustomHeader { get; set; }
     [Parameter]
-    public Project TaskObject { get; set; }
+    public Device TaskObject { get; set; }
     [Parameter]
     public Action DataChanged { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
+        ListTopic = MqttTopicSvc.GetAllData();
     }
     private void OnValidSubmit(EditContext context)
     {
@@ -83,28 +85,12 @@
             if (!hasil)
             {
                 Snackbar.Add("Gagal menyimpan data. Isi data dengan lengkap.", Severity.Error);
-                return;
-            }
-            else
-            {
-                //masukan mqtt 
-                var topic = TaskObject.Name.Replace(" ", "-").ToLower();
-                MqttTopicSvc.InsertData(new MqttTopic() { Desc = "controlling device", ProjectId = TaskObject.Id, JsonTemplate="", Topic=$"{TaskObject.Username}/{topic}/control", Username = TaskObject.Username  });
-                MqttTopicSvc.InsertData(new MqttTopic() { Desc = "monitoring device", ProjectId = TaskObject.Id, JsonTemplate="", Topic=$"{TaskObject.Username}/{topic}/data", Username = TaskObject.Username  });
-
-                //masukan device
-                var nostr = Gravicode.Tools.NumberGen.GenerateNumber(5);
-                DeviceSvc.InsertData(new Device() { MqttClientId = $"device-{topic}-{nostr}", DeviceType = DeviceTypes.Sensor, Desc = "sample device", Name=$"device-{nostr}", Username = TaskObject.Username  });
+                //toastService.ShowError("Gagal menyimpan data. Isi data dengan lengkap.", "Perhatian");
             }
         }
         else
         {
-            var hasil = service.UpdateData(TaskObject);
-            if (!hasil)
-            {
-                Snackbar.Add("Gagal menyimpan data. Isi data dengan lengkap.", Severity.Error);
-                return;
-            }
+            service.UpdateData(TaskObject);
         }
 
         //In a real world scenario this bool would probably be a service to delete the item from api/database

@@ -1,57 +1,57 @@
 ﻿using BMC.Models;
 using Microsoft.EntityFrameworkCore;
-using BMC.CloudIoT.Data;
+using BMC.MessageBroker.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BMC.CloudIoT.Data
+namespace BMC.MessageBroker.Data
 {
-    public class ProjectService : ICrud<Project>
+    public class MqttTopicService : ICrud<MqttTopic>
     {
         CloudIoTDB db;
 
-        public ProjectService()
+        public MqttTopicService()
         {
             if (db == null) db = new CloudIoTDB();
 
         }
         public bool DeleteData(object Id)
         {
-            var selData = (db.Projects.Where(x => x.Id == (long)Id).FirstOrDefault());
-            db.Projects.Remove(selData);
+            var selData = (db.MqttTopics.Where(x => x.Id == (long)Id).FirstOrDefault());
+            db.MqttTopics.Remove(selData);
             db.SaveChanges();
             return true;
         }
-        
-        public List<Project> FindByKeyword(string Keyword)
+
+        public List<MqttTopic> FindByKeyword(string Keyword)
         {
-            var data = from x in db.Projects
-                       where x.Name.Contains(Keyword)
+            var data = from x in db.MqttTopics
+                       where x.Topic.Contains(Keyword)
                        select x;
             return data.ToList();
         }
 
-        public List<Project> GetAllData()
+        public List<MqttTopic> GetAllData()
         {
-            return db.Projects.ToList();
+            return db.MqttTopics.ToList();
         }
-        public List<Project> GetAllData(string username)
+        public List<MqttTopic> GetAllData(string username)
         {
-            return db.Projects.Where(x => x.Username == username).ToList();
+            return db.MqttTopics.Where(x => x.Username == username).ToList();
         }
-        public Project GetDataById(object Id)
+        public MqttTopic GetDataById(object Id)
         {
-            return db.Projects.Where(x => x.Id == (long)Id).FirstOrDefault();
+            return db.MqttTopics.Where(x => x.Id == (long)Id).FirstOrDefault();
         }
 
 
-        public bool InsertData(Project data)
+        public bool InsertData(MqttTopic data)
         {
             try
             {
-                db.Projects.Add(data);
+                db.MqttTopics.Add(data);
                 db.SaveChanges();
                 return true;
             }
@@ -62,8 +62,10 @@ namespace BMC.CloudIoT.Data
             return false;
 
         }
-        
-        public bool UpdateData(Project data)
+
+
+
+        public bool UpdateData(MqttTopic data)
         {
             try
             {
@@ -92,7 +94,7 @@ namespace BMC.CloudIoT.Data
 
         public long GetLastId()
         {
-            return db.Projects.Max(x => x.Id);
+            return db.MqttTopics.Max(x => x.Id);
         }
     }
 

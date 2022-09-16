@@ -37,6 +37,11 @@ namespace BMC.CloudIoT.Data
         {
             return db.Alerts.ToList();
         }
+        
+        public List<Alert> GetAllData(string username)
+        {
+            return db.Alerts.Where(x=>x.Username == username).ToList();
+        }
 
         public Alert GetDataById(object Id)
         {
