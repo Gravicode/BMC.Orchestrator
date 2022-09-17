@@ -4,6 +4,64 @@ using System.Dynamic;
 
 namespace BMC.StreamProcessor
 {
+    public class UrlAction : AlertAction
+    {
+        public string Url { get; set; }
+        public UrlAction(string url)
+        {
+            this.Url = url;
+        }
+
+        async Task<bool> AlertAction.DoAction()
+        {
+            try
+            {
+                var res = await BMC.CommonActions.Web.Curl.GetString(this.Url);
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+            return true;
+        }
+    }
+    public class SmsAction : AlertAction
+    {
+        public string NoHp { get; set; }
+        public string Message { get; set; }
+        public SmsAction(string nohp, string message)
+        {
+            this.NoHp = nohp;
+            this.Message = message;
+        }
+
+        async Task<bool> AlertAction.DoAction()
+        {
+            return await BMC.CommonActions.Messaging.Sms.SendSms(NoHp,Message);
+        }
+    }
+    public class EmailAction : AlertAction
+    {
+        public string Subject { get; set; }
+        public string Body { get; set; }
+        public string ToEmail { get; set; }
+        public string FromEmail { get; set; }
+        public EmailAction(string subject,string body,string toemail)
+        {
+            this.Subject = subject;
+            this.Body = body;
+            this.ToEmail = toemail;
+        }
+
+        async Task<bool> AlertAction.DoAction()
+        {
+            return await BMC.CommonActions.Messaging.Email.SendEmail(ToEmail, Subject, Body);
+        }
+    }
+    public interface AlertAction
+    {
+        Task<bool> DoAction();
+    }
     public class AlertEventArgs : EventArgs
     {
         public string? AlertName { get; set; }
@@ -11,6 +69,7 @@ namespace BMC.StreamProcessor
     }
     public class StreamPipe
     {
+        public List<AlertAction> AlertActions=new();
         List<dynamic> dataCache;
         EvaluatorEngine engine;
         public Dictionary<string, string> AlertList;

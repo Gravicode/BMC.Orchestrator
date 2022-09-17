@@ -12,6 +12,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BMC.CommonActions\BMC.CommonActions.csproj" />
     <ProjectReference Include="..\Gravicode.ExpressionEvaluator\Gravicode.ExpressionEvaluator.csproj" />
   </ItemGroup>
 

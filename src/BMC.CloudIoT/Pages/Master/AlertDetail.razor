@@ -4,6 +4,7 @@
 @inject AlertService service
 @inject MqttTopicService MqttTopicSvc
 @inject AzureBlobHelper blob;
+@inject MqttTopicService MqttTopicSvc
 
 @inject ISnackbar Snackbar
 
@@ -66,7 +67,10 @@
 
 
 @code {
-
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    string UserName;
+   
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     List<MqttTopic> ListTopic = new();
     private void Cancel()
@@ -83,7 +87,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        ListTopic = MqttTopicSvc.GetAllData();
+        var user = (await authenticationStateTask).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            UserName = user.Identity.Name;
+
+        }
+        ListTopic = MqttTopicSvc.GetAllData(UserName);
     }
     private void OnValidSubmit(EditContext context)
     {

@@ -57,7 +57,9 @@
 
 
 @code {
-
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    string UserName;
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     List<Project> ListProject = new();
     private void Cancel()
@@ -74,25 +76,42 @@
 
     protected override async Task OnInitializedAsync()
     {
-        ListProject = ProjectSvc.GetAllData();
+        var user = (await authenticationStateTask).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            UserName = user.Identity.Name;
+
+        }
+        ListProject = ProjectSvc.GetAllData(UserName);
     }
     private void OnValidSubmit(EditContext context)
     {
-          if (TaskObject.Id == 0)
+        bool hasil=false;
+        if (!string.IsNullOrEmpty(TaskObject.JsonTemplate))
+        {
+            var res = Gravicode.Tools.JsonHelper.IsValidJson(TaskObject.JsonTemplate);
+            if (!res)
+            {
+                Snackbar.Add("Format template json tidak benar, tolong perbaiki.", Severity.Error);
+                return;
+            }
+        }
+        if (TaskObject.Id == 0)
         {
 
-            var hasil = service.InsertData(TaskObject);
-            if (!hasil)
-            {
-                Snackbar.Add("Gagal menyimpan data. Isi data dengan lengkap.", Severity.Error);
-                //toastService.ShowError("Gagal menyimpan data. Isi data dengan lengkap.", "Perhatian");
-            }
+            hasil = service.InsertData(TaskObject);
+            
         }
         else
         {
-            service.UpdateData(TaskObject);
+            hasil=service.UpdateData(TaskObject);
         }
-               
+        if (!hasil)
+        {
+            Snackbar.Add("Gagal menyimpan data. Isi data dengan lengkap dan benar.", Severity.Error);
+            return;
+        }
         //In a real world scenario this bool would probably be a service to delete the item from api/database
         Snackbar.Add("Data Saved", Severity.Success);
         MudDialog.Close(DialogResult.Ok(TaskObject.Id));

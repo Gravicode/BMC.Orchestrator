@@ -8,9 +8,9 @@ namespace BMC.CommonActions.Messaging
 {
     public class Sms
     {
-        public static async Task<bool> SendSms(string SenderNo, string ToNumber, string Message)
+        public static async Task<bool> SendSms(string ToNumber, string Message)
 
-            => await Gravicode.Tools.SmsService.SendSms(Message, ToNumber, SenderNo);
+            => await Gravicode.Tools.SmsService.SendSms(Message, ToNumber);
 
     }
 }

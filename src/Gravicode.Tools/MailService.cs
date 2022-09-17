@@ -171,11 +171,11 @@ namespace Gravicode.Tools
         public static string MailPassword { get; set; }
         public static int MailPort { get; set; }
         public static string MailServer { get; set; }
-
-        public static bool UseSendGrid { set; get; } = true;
+        public enum MailProviders { SendGrid, PostMark, Default };
+        public static MailProviders MailProvider { set; get; } = MailProviders.PostMark;
         public static async Task<bool> SendEmail(string subject, string message, string toemail, bool IsHTML = true)
         {
-            if (UseSendGrid)
+            if (MailProvider == MailProviders.SendGrid)
             {
                 //string smtpServer = "smtp-mail.outlook.com";
 
@@ -202,6 +202,10 @@ namespace Gravicode.Tools
                 }
 
 
+            }
+            else if(MailProvider == MailProviders.PostMark)
+            {
+                return await PostmarkSendEmail(subject, message, toemail, IsHTML);
             }
             else
             {

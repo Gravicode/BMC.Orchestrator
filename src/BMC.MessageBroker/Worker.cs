@@ -11,6 +11,8 @@ namespace BMC.MessageBroker
         private readonly ILogger<Worker> _logger;
         UserProfileService UserSvc;
         DeviceService DeviceSvc;
+        MqttServer server;
+        public bool IsRunning { get; set; }
 
         public Worker(ILogger<Worker> logger, UserProfileService UserProfileService, DeviceService DeviceService)
         {
@@ -21,69 +23,71 @@ namespace BMC.MessageBroker
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            if (!IsRunning) await StartBroker();
+            if (!IsRunning) 
+                this.server = await StartBroker();
             while (!stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                await Task.Delay(1000, stoppingToken);
+                _logger.LogInformation("Service running at: {time}", DateTimeOffset.Now);
+                await Task.Delay(5000, stoppingToken);
             }
         }
-        public bool IsRunning { get; set; }
 
-        public void StopBroker()
+        public async Task StopBroker()
         {
-            IsRunning = false;
+            if (IsRunning && server!=null)
+            {
+                IsRunning = false;
+                await this.server.StopAsync();
+            }
         }
-        async Task StartBroker()
+        async Task<MqttServer> StartBroker(bool enableLogger=false)
         {
-
-            var mqttFactory = new MqttFactory();
+            if (IsRunning) return this.server;
+            var mqttFactory = enableLogger ? new MqttFactory(new ConsoleLogger()) : new MqttFactory();
 
             var mqttServerOptions = new MqttServerOptionsBuilder().WithDefaultEndpoint().Build();
 
-            using (var mqttServer = mqttFactory.CreateMqttServer(mqttServerOptions))
+            var mqttServer = mqttFactory.CreateMqttServer(mqttServerOptions);
             {
                 // Setup connection validation before starting the server so that there is 
                 // no change to connect without valid credentials.
                 mqttServer.ValidatingConnectionAsync += e =>
                 {
-                    var valid = DeviceSvc.IsMqttClientIdExist(e.ClientId, e.UserName);
-                    if (!valid.Result)
+                    if (e.ClientId != "stream-hub")
                     {
-                        e.ReasonCode = MqttConnectReasonCode.ClientIdentifierNotValid;
-                    }
+                        var valid = DeviceSvc.IsMqttClientIdExist(e.ClientId, e.UserName);
+                        if (!valid.Result)
+                        {
+                            e.ReasonCode = MqttConnectReasonCode.ClientIdentifierNotValid;
+                        }
 
 
-                    var item = UserSvc.GetItemByEmail(e.UserName);
-                    if (item == null)
-                    {
-                        e.ReasonCode = MqttConnectReasonCode.BadUserNameOrPassword;
-                    }
-                    else
-                    {
-                        var enc = new Encryption();
-                        var pass = enc.Decrypt(item.Password);
-                        bool isAuthenticate = pass == e.Password;
-                        if (!isAuthenticate)
+                        var item = UserSvc.GetItemByEmail(e.UserName);
+                        if (item == null)
                         {
                             e.ReasonCode = MqttConnectReasonCode.BadUserNameOrPassword;
                         }
-                    }
+                        else
+                        {
+                            var enc = new Encryption();
+                            var pass = enc.Decrypt(item.Password);
+                            bool isAuthenticate = pass == e.Password;
+                            if (!isAuthenticate)
+                            {
+                                e.ReasonCode = MqttConnectReasonCode.BadUserNameOrPassword;
+                            }
+                        }
 
-                    _logger.LogInformation("MQTT Server is Ready: {time}", DateTimeOffset.Now);
+                    }
 
 
                     return Task.CompletedTask;
                 };
 
                 await mqttServer.StartAsync();
+                _logger.LogInformation("MQTT Server is Ready: {time}", DateTimeOffset.Now);
                 IsRunning = true;
-                while (IsRunning)
-                {
-                    Thread.Sleep(1000);
-                }
-
-                await mqttServer.StopAsync();
+                return mqttServer;
             }
         }
     }

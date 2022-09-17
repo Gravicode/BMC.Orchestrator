@@ -231,6 +231,9 @@ namespace BMC.Models
         [DataMember(Order = 11)]
         public string? DashboardUrl { set; get; }
 
+        [DataMember(Order = 12)]
+        public string? MqttTopic { set; get; }
+
         public Project Project { set; get; }
     }
     [DataContract]

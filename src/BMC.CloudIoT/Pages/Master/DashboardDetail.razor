@@ -3,6 +3,7 @@
 @inject IToastService toastService
 @inject DashboardService service
 @inject ProjectService ProjectSvc
+@inject MqttTopicService MqttTopicSvc
 @inject AzureBlobHelper blob;
 
 @inject ISnackbar Snackbar
@@ -37,6 +38,14 @@
                                     @foreach (var item in ListProject)
                                     {
                                         <MudSelectItem Value="@(item.Id)">@item.Name</MudSelectItem>
+                                    }
+                            </MudSelect> 
+                            
+                            <MudSelect T="string" Label="Mqtt Topic" @bind-Value="@TaskObject.MqttTopic" AnchorOrigin="Origin.BottomCenter">
+                                @if (ListTopic != null)
+                                    @foreach (var item in ListTopic.Where(x=>x.ProjectId == TaskObject.ProjectId))
+                                    {
+                                        <MudSelectItem Value="@(item.Topic)">@item.Topic</MudSelectItem>
                                     }
                             </MudSelect>
 
@@ -85,6 +94,7 @@
 
 @code {
     List<Project> ListProject = new();
+    List<MqttTopic> ListTopic = new();
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     private void Cancel()
     {
@@ -97,11 +107,22 @@
     public Dashboard TaskObject { get; set; }
     [Parameter]
     public Action DataChanged { get; set; }
-
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    string UserName;
     protected override async Task OnInitializedAsync()
     {
-        ListProject = ProjectSvc.GetAllData();
+        var user = (await authenticationStateTask).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            UserName = user.Identity.Name;
+
+        }
+        ListProject = ProjectSvc.GetAllData(UserName);
+        ListTopic = MqttTopicSvc.GetAllData(UserName);
     }
+   
     private void OnValidSubmit(EditContext context)
     {
         if (TaskObject.Id == 0)

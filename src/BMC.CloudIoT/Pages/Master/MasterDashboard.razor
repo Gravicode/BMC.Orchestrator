@@ -25,15 +25,17 @@ else
         </ToolBarContent>
         <HeaderContent>
             <MudTh>Name</MudTh>
-            <MudTh>ChartType</MudTh>
-            <MudTh>DashboardUrl</MudTh>
+            <MudTh>Chart Type</MudTh>
+            <MudTh>Mqtt Topic</MudTh>
+            <MudTh>Dashboard Url</MudTh>
             <MudTh>Desc</MudTh>
             <MudTh>Actions</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel="Nama">@item.Name</MudTd>
-            <MudTd DataLabel="ChartType">@item.ChartType</MudTd>
-            <MudTd DataLabel="DashboardUrl">@item.DashboardUrl</MudTd>
+            <MudTd DataLabel="Chart Type">@item.ChartType</MudTd>
+            <MudTd DataLabel="Mqtt Topic">@item.MqttTopic</MudTd>
+            <MudTd DataLabel="Dashboard Url">@item.DashboardUrl</MudTd>
             <MudTd DataLabel="Desc">@item.Desc</MudTd>
             <MudTd DataLabel="Actions">
                 @if (HasLogin)
@@ -143,6 +145,9 @@ else
 
         itemObject = new Dashboard();
         itemObject.Username = UserName;
+        itemObject.XAxisMember = "CreatedDate";
+        itemObject.XAxisType = AppConstants.AxisTypes[1];
+
         customHeader = "Masukan Dashboard Baru";
 
         var action = new Action(DataChanged);
