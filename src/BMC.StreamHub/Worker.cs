@@ -198,18 +198,25 @@ namespace BMC.StreamHub
                 else
                 {
                     var pipe = new StreamPipe();
-                    pipe.OnAlertTriggered += (a, b) => { Console.WriteLine($"[{DateTime.Now}] alert triggered: {b.AlertName} -> {b.DataObject?.ToString()}"); };
+                    pipe.OnAlertTriggered += (a, b) => { 
+                        Console.WriteLine($"[{DateTime.Now}] alert triggered: {b.AlertName} -> {b.DataObject?.ToString()}"); 
+                        foreach(var alert in pipe.AlertActions)
+                        {
+                            alert.DoAction();
+                        }
+                    };
                     var alerts = ListAlert.Where(x => x.MqttTopic?.Topic == topic);
                     foreach(var alert in alerts)
                     {
                         pipe.AddAlert(alert.Name, alert.FilterQuery);
+                        var msg = string.IsNullOrEmpty(alert.MessageTemplate) ? $"{alert.Name} triggered by {alert.FilterQuery}" : alert.MessageTemplate;
                         if (!string.IsNullOrEmpty(alert.SendToEmail))
                         {
-                            pipe.AlertActions.Add(new EmailAction(alert.Name, $"{alert.Name} triggered by {alert.FilterQuery}", alert.SendToEmail));
+                            pipe.AlertActions.Add(new EmailAction(alert.Name, msg, alert.SendToEmail));
                         }
                         if (!string.IsNullOrEmpty(alert.SendToPhone))
                         {
-                            pipe.AlertActions.Add(new SmsAction(alert.SendToPhone, $"{alert.Name} triggered by {alert.FilterQuery}"));
+                            pipe.AlertActions.Add(new SmsAction(alert.SendToPhone, msg));
                         }
                         if (!string.IsNullOrEmpty(alert.CallUrl))
                         {
