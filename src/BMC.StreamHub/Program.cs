@@ -1,5 +1,6 @@
 using BMC.StreamHub;
 using BMC.StreamHub.Data;
+using Gravicode.Tools;
 
 IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices(services =>
@@ -28,6 +29,16 @@ AppConstants.GMapApiKey = Configuration["GmapKey"];
 AppConstants.MqttPort = Configuration["App:MqttPort"];
 AppConstants.MqttHost = Configuration["App:MqttHost"];
 
+MailService.MailUser = Configuration["MailSettings:MailUser"];
+MailService.MailPassword = Configuration["MailSettings:MailPassword"];
+MailService.MailServer = Configuration["MailSettings:MailServer"];
+MailService.MailPort = int.Parse(Configuration["MailSettings:MailPort"]);
+MailService.SetTemplate(Configuration["MailSettings:TemplatePath"]);
+MailService.SendGridKey = Configuration["MailSettings:SendGridKey"];
+MailService.MailProvider = MailService.MailProviders.PostMark;
 
+SmsService.UserKey = Configuration["SmsSettings:ZenzivaUserKey"];
+SmsService.PassKey = Configuration["SmsSettings:ZenzivaPassKey"];
+SmsService.TokenKey = Configuration["SmsSettings:TokenKey"];
 
 await host.RunAsync();
