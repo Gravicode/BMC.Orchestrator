@@ -1,0 +1,58 @@
+﻿@inject IJSRuntime jsRuntime
+@inject NavigationManager NavMgr
+@inject IToastService toastService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IDialogService DialogService
+@inject DashboardService DashboardSvc
+
+<MudPaper Class="pa-4 mt-3" Elevation="3">
+        <MudText Align="Align.Center" Typo="Typo.h4">@(SelectedItem == null ? "" : SelectedItem.Name)</MudText>
+        <MudChart ChartType="ChartMode" ChartSeries="@Series" @bind-SelectedIndex="Index" XAxisLabels="@XAxisLabels" Width="100%" Height="250px"></MudChart>
+        <MudText Align="Align.Center" Typo="Typo.h6">@(SelectedItem == null ? "" : SelectedItem.Desc)</MudText>
+</MudPaper>
+    
+
+    @code {
+    BlazorTimer timer;
+    [Parameter]
+    public long DashboardId { get; set; }
+    Dashboard SelectedItem{ set; get; }
+
+    [Parameter]
+    public ChartType ChartMode { get; set; } = ChartType.Line;
+
+    public string AxisXMember { get; set; }
+    public string AxisYMember { get; set; }
+    private int Index = -1; //default value cannot be 0 -> first selectedindex is 0.
+
+    public List<ChartSeries> Series = new List<ChartSeries>()
+    {
+        new ChartSeries() { Name = "Series 2", Data = new double[] { 10, 41, 35, 51, 49, 62, 69, 91, 148 } },
+    };
+    public string[] XAxisLabels = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep" };
+    protected override async Task OnInitializedAsync()
+    {
+
+        if (DashboardId > 0)
+        {
+            SelectedItem = DashboardSvc.GetDataById(DashboardId);
+            LoadData();
+            timer = new BlazorTimer();
+            timer.SetTimer(1000);
+            timer.OnElapsed += async()=> { await LoadData(); };
+
+        }
+    }
+    public async Task LoadData()
+    {
+        if (SelectedItem == null) return;
+        var datas = DashboardSvc.GetDataSeries(DashboardId,10);
+        var new_series = new List<ChartSeries>()
+        {
+            new ChartSeries() { Name = SelectedItem.Name, Data = datas.Select(x=>x.NilaiY).ToArray() }
+        };
+        XAxisLabels = datas.Select(x => x.NilaiX).ToArray();
+        Series = new_series;
+        await InvokeAsync(StateHasChanged);
+    }
+}

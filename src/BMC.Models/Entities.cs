@@ -341,7 +341,11 @@ namespace BMC.Models
         public Roles Role { set; get; } = Roles.User;
 
     }
-
+    public class DataSeriesItem
+    {
+        public double NilaiY { get; set; }
+        public string NilaiX { get; set; }
+    }
     public enum Roles { Admin, User, Operator }
     #endregion
 }

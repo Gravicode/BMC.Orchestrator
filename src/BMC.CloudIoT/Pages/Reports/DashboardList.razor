@@ -1,0 +1,80 @@
+﻿@page "/reports/dashboard"
+@inject ProjectService ProjectSvc
+
+@inject IJSRuntime jsRuntime
+@inject NavigationManager NavMgr
+@inject IToastService toastService
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+@inject IDialogService DialogService
+@inject DashboardService DashboardSvc
+@using System.IO
+
+<h3>My Dashboard</h3>
+
+<MudGrid>
+    <MudItem xs="12" sm="12">
+        <MudPaper Class="pa-4">
+               
+                <div class="d-flex">
+                 <MudSelect T="long" Label="Select Project" @bind-Value="@ProjectId" AnchorOrigin="Origin.BottomCenter">
+                    @if (ListProject != null)
+                        @foreach (var item in ListProject)
+                        {
+                            <MudSelectItem Value="@(item.Id)">@item.Name</MudSelectItem>
+                        }
+                 </MudSelect>
+                </div>
+             
+        </MudPaper>
+    </MudItem>
+    
+</MudGrid>
+
+@if(ListDashboard!=null && ListDashboard.Count > 0)
+{
+    @foreach(var item in ListDashboard)
+    {
+        ChartType tipeChart = item.ChartType switch { ChartTypes.Line => ChartType.Line, ChartTypes.Bar => ChartType.Bar, ChartTypes.Area => ChartType.Line, _ => ChartType.Line };
+        <ChartControl ChartMode="@tipeChart" DashboardId="@item.Id"></ChartControl>
+    }
+}
+
+@code {
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    string UserName;
+    List<Project> ListProject = new();
+    List<Dashboard> ListDashboard = new();
+    long _projectId;
+    long ProjectId
+    {
+        set
+        {
+            this._projectId = value;
+            LoadDashboards();
+        }
+        get
+        {
+            return _projectId;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = (await authenticationStateTask).User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            UserName = user.Identity.Name;
+
+        }
+        ListProject = ProjectSvc.GetAllData(UserName);
+
+    }
+
+    void LoadDashboards()
+    {
+        ListDashboard = DashboardSvc.GetDataByProjectId(ProjectId);
+
+    }
+}
